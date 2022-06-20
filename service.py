@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
+import time
 
 from model import Model, FORECAST_TOTAL_TIME, SAMPLE_TIME
-
 
 class Service():
     def __init__(self, model_path: str):
@@ -30,20 +30,20 @@ class Service():
         pred_time_series = self.model.predict(movie_data)
         self.time_series += pred_time_series
     
-    def predict_max_stress(self, current_time: int, forecast_time: int = 5 * SAMPLE_TIME) -> int:
+    def predict_max_stress(self, current_time: int = None, forecast_time: int = 5 * SAMPLE_TIME) -> int:
         """
         Return the maximum stress for the next forecast_time seconds
         :param current_time: current time
         :param forecast_time: time of the prediction in seconds
         :return predicted stress
         """
+        current_time = int(time.time()) if current_time is None else current_time
         self._move_window(current_time)
         n_to_predict = Service._adjust_time(forecast_time)
-        return max(self.time_series[:n_to_predict])
+        return int(max(self.time_series[:n_to_predict]))
 
     def _move_window(self, current_time: int) -> None:
         current_time = Service._adjust_time(current_time)
-        print(current_time)
 
         if self.start_time is None:  # for the first time
             self.start_time = current_time

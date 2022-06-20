@@ -1,0 +1,57 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: k8s-scaler-role
+rules:
+  - apiGroups: ["apps"]
+    resources:
+      - replicasets
+      - deployments/scale
+    verbs:
+      - create
+      - get
+      - list
+      - update
+      - watch
+      - patch
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: internal-kubectl
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cluster-supervisor
+subjects:
+  - kind: ServiceAccount
+    name: internal-kubectl
+roleRef:
+  kind: Role
+  name: k8s-scaler-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-scaler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-scaler
+  template:
+    metadata:
+      labels:
+        app: k8s-scaler
+    spec:
+      serviceAccountName: internal-kubectl
+      containers:
+      - name: k8s-manager
+        image: k8s-manager-test
+        imagePullPolicy: Never
+#        securityContext:
+#          privileged: True
+        ports:
+        - containerPort: 5432

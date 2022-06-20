@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-deplo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testo
+  template:
+    metadata:
+      labels:
+        app: testo
+    spec:
+      containers:
+        - name: testo
+          image: watermodelling/hydrus-modflow-synergy-engine:ubuntu-k8s
+          command:
+            - "sleep"
+            - "infinity"
+          securityContext:
+            privileged: True
